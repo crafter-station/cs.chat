@@ -58,6 +58,8 @@ import { useChat } from "@ai-sdk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import { useChatContext } from "@/lib/chat-context";
+import { CrafterStationLogo } from "@/components/logos/crafter-station";
+import { GithubBadge } from "@/components/github-badge";
 import {
   useCreateThread,
   useThreads,
@@ -488,6 +490,21 @@ export default function Home() {
                     {suggestion}
                   </button>
                 ))}
+              </div>
+
+              {/* Crafter Station + GitHub */}
+              <div className="mt-8 flex items-center gap-3">
+                <a
+                  href="https://crafterstation.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-muted-foreground/40 transition-colors hover:text-muted-foreground"
+                >
+                  <CrafterStationLogo className="size-3.5" />
+                  <span className="text-xs">Crafter Station</span>
+                </a>
+                <span className="text-muted-foreground/20">|</span>
+                <GithubBadge />
               </div>
             </div>
           ) : (
