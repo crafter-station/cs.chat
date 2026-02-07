@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     await req.json();
 
   const { text } = await generateText({
-    model: model,
+    model: model, 
     maxOutputTokens: 20,
     system:
       "Generate a concise title (6 words max) for a chat that starts with the following message. Return only the title, no quotes or punctuation.",
