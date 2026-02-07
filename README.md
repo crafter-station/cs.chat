@@ -1,36 +1,141 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+![hero](public/og.png)
 
-## Getting Started
+<h1 align="center">
+  C3.chat
+  <br />
+</h1>
 
-First, run the development server:
+<p align="center">
+  One chat, every AI model
+  <br />
+  <br />
+  <a href="https://cs.chat">Website</a>
+  ·
+  <a href="https://github.com/crafter-station/cs.chat/issues">Issues</a>
+</p>
+
+<p align="center">
+  <a href="https://nextjs.org">
+    <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  </a>
+  <a href="https://react.dev">
+    <img src="https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  </a>
+  <a href="https://sdk.vercel.ai">
+    <img src="https://img.shields.io/badge/Vercel_AI_SDK-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel AI SDK" />
+  </a>
+  <a href="https://www.typescriptlang.org">
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  </a>
+</p>
+
+<p align="center">
+  <sub>
+    Built by
+    <br />
+    <a href="https://crafterstation.com">
+      <img src="https://raw.githubusercontent.com/Railly/crafter-station/main/public/logo.png" alt="Crafter Station" width="16" valign="middle" /> Crafter Station
+    </a>
+  </sub>
+</p>
+
+## About
+
+C3.chat is an open-source AI chat interface that lets you talk to multiple AI models from a single place. Switch between GPT-4o, Claude, Gemini, DeepSeek, Grok, and more — all through one clean, fast UI.
+
+## Features
+
+**Multi-Model Support**: Chat with 13+ models from OpenAI, Anthropic, Google, Meta, DeepSeek, xAI, Perplexity, and Mistral — switch mid-conversation.<br/>
+**Reasoning Display**: See the model's chain-of-thought when using reasoning models like DeepSeek R1.<br/>
+**Citations & Sources**: Inline citations with source links for grounded responses.<br/>
+**Streaming Responses**: Real-time token streaming with smooth scroll-to-bottom behavior.<br/>
+**Thread Management**: Persistent conversation threads with auto-generated titles.<br/>
+**Keyboard Shortcuts**: `Cmd+Shift+O` to start a new conversation instantly.<br/>
+**Rate Limiting**: Built-in per-user rate limiting with Upstash Redis.<br/>
+**Authentication**: Clerk-powered auth with anonymous guest access and usage tiers.<br/>
+
+## Get Started
+
+### Prerequisites
+
+- [Bun](https://bun.sh) 1.1+
+- A [Neon](https://neon.tech) Postgres database
+- [Upstash](https://upstash.com) Redis instance
+- [Clerk](https://clerk.com) application
+- AI Gateway API key
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Clone the repository
+git clone https://github.com/crafter-station/cs.chat.git
+cd cs.chat
+
+# Install dependencies
+bun install
+
+# Set up environment variables
+cp .env.example .env.local
+
+# Push the database schema
+bun run db:push
+
+# Start the development server
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Core
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
 
-## Learn More
+### AI & Backend
 
-To learn more about Next.js, take a look at the following resources:
+- Vercel AI SDK (`ai` + `@ai-sdk/react`)
+- AI Gateway for multi-provider routing
+- Drizzle ORM + Neon Postgres
+- Upstash Redis (rate limiting)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Auth & Analytics
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Clerk (authentication)
+- Vercel Analytics
 
-## Deploy on Vercel
+### UI
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- shadcn/ui
+- AI Elements (composable chat components)
+- Radix UI primitives
+- Motion (animations)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Project Structure
+
+```
+cs.chat/
+├── app/
+│   ├── api/chat/        # Streaming chat API route
+│   ├── layout.tsx       # Root layout with sidebar
+│   ├── page.tsx         # Main chat interface
+│   └── globals.css      # Theme & custom CSS variables
+├── components/
+│   ├── ai-elements/     # Chat UI components (conversation, message, prompt-input, model-selector)
+│   ├── ui/              # shadcn/ui base components
+│   └── logos/           # Brand logos
+├── hooks/               # Custom React hooks (threads, usage, title generation)
+├── lib/                 # Utilities (rate limiting, caching, user service)
+└── public/              # Static assets & OG images
+```
+
+## Contributing
+
+We welcome contributions! Open an [issue](https://github.com/crafter-station/cs.chat/issues) or submit a pull request.
+
+---
+
+<p align="center">
+  Built with love by <a href="https://crafterstation.com">crafterstation.com</a>
+</p>
