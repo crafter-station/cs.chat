@@ -117,6 +117,7 @@ const models = [
     id: "google/gemini-2.0-flash-exp",
     name: "Gemini 2.0 Flash",
     providers: ["google"],
+    hidden: true,
   },
   {
     chef: "Google",
@@ -124,6 +125,7 @@ const models = [
     id: "google/gemini-1.5-pro",
     name: "Gemini 1.5 Pro",
     providers: ["google"],
+    hidden: true,
   },
   {
     chef: "Meta",
@@ -405,8 +407,9 @@ export default function Home() {
     }
   };
 
-  const selectedModelData = models.find((m) => m.id === selectedModel);
-  const chefs = [...new Set(models.map((m) => m.chef))];
+  const visibleModels = models.filter((m) => !m.hidden);
+  const selectedModelData = visibleModels.find((m) => m.id === selectedModel);
+  const chefs = [...new Set(visibleModels.map((m) => m.chef))];
   const hasMessages = messages.length > 0;
   const isNewChat = hydrated && !hasMessages && !activeChatId;
   const isTyping = text.length > 0;
@@ -631,7 +634,7 @@ export default function Home() {
                           </ModelSelectorEmpty>
                           {chefs.map((chef) => (
                             <ModelSelectorGroup heading={chef} key={chef}>
-                              {models
+                              {visibleModels
                                 .filter((m) => m.chef === chef)
                                 .map((model) => (
                                   <ModelItem
