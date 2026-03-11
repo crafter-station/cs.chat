@@ -3,14 +3,16 @@
 import { useAuth, useUser, SignInButton } from "@clerk/nextjs";
 import { useUsage } from "@/hooks/use-usage";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CrownIcon, UserIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
-  const { isSignedIn } = useAuth();
-  const { user } = useUser();
-  const { data: usage } = useUsage();
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { user, isLoaded: userLoaded } = useUser();
+  const { data: usage, isLoading: usageLoading } = useUsage();
 
+  const isLoading = !authLoaded || !userLoaded || usageLoading;
   const isPaid = usage?.tier === "paid";
 
   return (
@@ -21,7 +23,15 @@ export default function SettingsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-muted-foreground">Account</h2>
         <div className="rounded-xl border border-border p-4">
-          {isSignedIn ? (
+          {isLoading ? (
+            <div className="flex items-center gap-3">
+              <Skeleton className="size-9 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-3 w-40" />
+              </div>
+            </div>
+          ) : isSignedIn ? (
             <div className="flex items-center gap-3">
               <div className="flex size-9 items-center justify-center rounded-full bg-accent">
                 {user?.imageUrl ? (
@@ -63,7 +73,17 @@ export default function SettingsPage() {
         <h2 className="text-sm font-medium text-muted-foreground">
           Subscription
         </h2>
-        {isPaid ? (
+        {isLoading ? (
+          <div className="rounded-xl border border-border p-5 space-y-3">
+            <div className="flex items-center gap-2.5">
+              <Skeleton className="size-4 rounded" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="ml-auto h-3 w-12" />
+            </div>
+            <Skeleton className="h-3 w-48" />
+            <Skeleton className="h-1.5 w-full rounded-full" />
+          </div>
+        ) : isPaid ? (
           <div className="rounded-xl border border-rose/30 bg-rose/5 p-5">
             <div className="flex items-center gap-2.5">
               <CrownIcon className="size-4 text-rose" />
