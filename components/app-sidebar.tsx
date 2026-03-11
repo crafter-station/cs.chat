@@ -27,6 +27,7 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useThreads, useDeleteThread } from "@/hooks/use-threads";
 import { useChatContext } from "@/lib/chat-context";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   prefetchMessages,
@@ -37,6 +38,18 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: threads = [] } = useThreads();
   const deleteThread = useDeleteThread();
   const { activeChatId, setActiveChatId, startNewChat } = useChatContext();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleSelectThread = (id: string) => {
+    setActiveChatId(id);
+    if (pathname !== "/") router.push("/");
+  };
+
+  const handleNewChat = () => {
+    startNewChat();
+    if (pathname !== "/") router.push("/");
+  };
 
 
   return (
@@ -63,7 +76,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              onClick={startNewChat}
+              onClick={handleNewChat}
               className="group/new bg-rose text-rose-foreground hover:bg-rose/90 hover:text-rose-foreground active:bg-rose/90 active:text-rose-foreground min-w-8 duration-200 ease-linear"
             >
               <MessageSquarePlusIcon className="size-4" />
@@ -102,7 +115,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuItem key={thread.id}>
                   <SidebarMenuButton
                     isActive={thread.id === activeChatId}
-                    onClick={() => setActiveChatId(thread.id)}
+                    onClick={() => handleSelectThread(thread.id)}
                     onMouseEnter={() => prefetchMessages(thread.id)}
                     className="truncate"
                   >
