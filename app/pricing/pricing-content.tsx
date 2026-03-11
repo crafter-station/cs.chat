@@ -39,8 +39,8 @@ export function PricingContent() {
     return (
       <div className="flex min-h-svh flex-col items-center justify-center p-4">
         <div className="mx-auto max-w-md text-center">
-          <div className="mb-4 text-4xl">
-            &#10003;
+          <div className="mb-4 flex size-12 items-center justify-center rounded-full bg-rose/15 text-rose mx-auto">
+            <CheckIcon className="size-6" />
           </div>
           <h1 className="mb-2 text-2xl font-semibold">
             Welcome to Pro!
@@ -50,7 +50,7 @@ export function PricingContent() {
             upgraded shortly.
           </p>
           <Link href="/">
-            <Button>Start chatting</Button>
+            <Button className="bg-rose text-rose-foreground hover:bg-rose/90">Start chatting</Button>
           </Link>
         </div>
       </div>
@@ -100,7 +100,10 @@ export function PricingContent() {
           </div>
 
           {/* Pro tier */}
-          <div className="rounded-xl border-2 border-foreground p-6 text-left">
+          <div className="relative rounded-xl border-2 border-rose p-6 text-left">
+            <span className="absolute -top-3 left-4 rounded-full bg-rose px-3 py-0.5 text-xs font-medium text-rose-foreground">
+              Popular
+            </span>
             <h2 className="mb-1 text-lg font-semibold">Pro</h2>
             <div className="mb-4">
               <span className="text-3xl font-bold">$10</span>
@@ -112,24 +115,24 @@ export function PricingContent() {
             <ul className="mb-6 space-y-2.5">
               {PRO_FEATURES.map((f) => (
                 <li key={f} className="flex items-start gap-2 text-sm">
-                  <CheckIcon className="mt-0.5 size-4 shrink-0" />
+                  <CheckIcon className="mt-0.5 size-4 shrink-0 text-rose" />
                   {f}
                 </li>
               ))}
             </ul>
             {isPaid ? (
               <Link href="/api/polar/portal">
-                <Button className="w-full">Manage subscription</Button>
+                <Button className="w-full bg-rose text-rose-foreground hover:bg-rose/90">Manage subscription</Button>
               </Link>
             ) : isSignedIn ? (
               <Link
                 href={`/api/polar/checkout?products=${POLAR_PRO_PRODUCT_ID}&customerExternalId=${userId}&customerEmail=${encodeURIComponent(user?.primaryEmailAddress?.emailAddress ?? "")}&customerName=${encodeURIComponent(user?.fullName ?? "")}`}
               >
-                <Button className="w-full">Upgrade to Pro</Button>
+                <Button className="w-full bg-rose text-rose-foreground hover:bg-rose/90">Upgrade to Pro</Button>
               </Link>
             ) : (
               <SignInButton mode="modal">
-                <Button className="w-full">Sign up to upgrade</Button>
+                <Button className="w-full bg-rose text-rose-foreground hover:bg-rose/90">Sign up to upgrade</Button>
               </SignInButton>
             )}
           </div>
