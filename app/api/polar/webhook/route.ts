@@ -18,6 +18,18 @@ export const POST = Webhooks({
       .where(eq(users.clerkId, externalId));
   },
 
+  onOrderCreated: async (payload) => {
+    const customerId = payload.data.customerId;
+    const externalId = payload.data.customer?.externalId;
+    if (!externalId || !payload.data.subscription) return;
+
+    // Fallback: also upgrade on first order
+    await db
+      .update(users)
+      .set({ tier: "paid", polarCustomerId: customerId })
+      .where(eq(users.clerkId, externalId));
+  },
+
   onSubscriptionCanceled: async (payload) => {
     const customerId = payload.data.customerId;
 
