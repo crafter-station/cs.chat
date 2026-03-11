@@ -1,12 +1,10 @@
 "use client";
 
 import {
-  CrownIcon,
   LogInIcon,
   MessageSquarePlusIcon,
   SearchIcon,
   SettingsIcon,
-  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
 
@@ -29,7 +27,6 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useThreads, useDeleteThread } from "@/hooks/use-threads";
 import { useChatContext } from "@/lib/chat-context";
-import { useUsage } from "@/hooks/use-usage";
 import Link from "next/link";
 import {
   prefetchMessages,
@@ -40,8 +37,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: threads = [] } = useThreads();
   const deleteThread = useDeleteThread();
   const { activeChatId, setActiveChatId, startNewChat } = useChatContext();
-  const { data: usage } = useUsage();
-  const isPaid = usage?.tier === "paid";
+
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -141,25 +137,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
-              <SignedIn>
-                <SidebarMenuItem>
-                  {isPaid ? (
-                    <SidebarMenuButton asChild>
-                      <Link href="/api/polar/portal">
-                        <CrownIcon className="text-rose" />
-                        <span>Manage Plan</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  ) : (
-                    <SidebarMenuButton asChild>
-                      <Link href="/pricing">
-                        <SparklesIcon className="text-rose" />
-                        <span>Upgrade to Pro</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  )}
-                </SidebarMenuItem>
-              </SignedIn>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/s">
