@@ -141,6 +141,25 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
+              <SignedIn>
+                <SidebarMenuItem>
+                  {isPaid ? (
+                    <SidebarMenuButton asChild>
+                      <Link href="/api/polar/portal">
+                        <CrownIcon className="text-rose" />
+                        <span>Manage Plan</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  ) : (
+                    <SidebarMenuButton asChild>
+                      <Link href="/pricing">
+                        <SparklesIcon className="text-rose" />
+                        <span>Upgrade to Pro</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  )}
+                </SidebarMenuItem>
+              </SignedIn>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <a href="#">
@@ -157,23 +176,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarSeparator />
       <SidebarFooter>
         <SidebarMenu>
-          <SignedIn>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                {isPaid ? (
-                  <Link href="/api/polar/portal" className="flex items-center gap-2">
-                    <CrownIcon className="size-4 text-rose" />
-                    <span>Pro Plan</span>
-                  </Link>
-                ) : (
-                  <Link href="/pricing" className="flex items-center gap-2">
-                    <SparklesIcon className="size-4 text-rose" />
-                    <span>Upgrade to Pro</span>
-                  </Link>
-                )}
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SignedIn>
           <SidebarMenuItem>
             <SignedOut>
               <SignInButton mode="modal">
