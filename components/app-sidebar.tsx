@@ -162,10 +162,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               </SignedIn>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <a href="#">
+                  <Link href="/s">
                     <SettingsIcon />
                     <span>Settings</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
