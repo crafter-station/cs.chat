@@ -1,10 +1,12 @@
 "use client";
 
 import {
+  CrownIcon,
   LogInIcon,
   MessageSquarePlusIcon,
   SearchIcon,
   SettingsIcon,
+  SparklesIcon,
   Trash2Icon,
 } from "lucide-react";
 
@@ -27,6 +29,8 @@ import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import { Shimmer } from "@/components/ai-elements/shimmer";
 import { useThreads, useDeleteThread } from "@/hooks/use-threads";
 import { useChatContext } from "@/lib/chat-context";
+import { useUsage } from "@/hooks/use-usage";
+import Link from "next/link";
 import {
   prefetchMessages,
   clearCachedMessages,
@@ -36,6 +40,8 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: threads = [] } = useThreads();
   const deleteThread = useDeleteThread();
   const { activeChatId, setActiveChatId, startNewChat } = useChatContext();
+  const { data: usage } = useUsage();
+  const isPaid = usage?.tier === "paid";
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -151,6 +157,23 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarSeparator />
       <SidebarFooter>
         <SidebarMenu>
+          <SignedIn>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                {isPaid ? (
+                  <Link href="/api/polar/portal" className="flex items-center gap-2">
+                    <CrownIcon className="size-4 text-rose" />
+                    <span>Pro Plan</span>
+                  </Link>
+                ) : (
+                  <Link href="/pricing" className="flex items-center gap-2">
+                    <SparklesIcon className="size-4 text-rose" />
+                    <span>Upgrade to Pro</span>
+                  </Link>
+                )}
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SignedIn>
           <SidebarMenuItem>
             <SignedOut>
               <SignInButton mode="modal">
