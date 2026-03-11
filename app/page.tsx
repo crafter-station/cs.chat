@@ -45,12 +45,8 @@ import { Shimmer } from "@/components/ai-elements/shimmer";
 import {
   CheckIcon,
   ChevronDownIcon,
-  CodeIcon,
-  CompassIcon,
   GlobeIcon,
-  GraduationCapIcon,
   PaperclipIcon,
-  SparklesIcon,
 } from "lucide-react";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import type { SourceUrlUIPart } from "ai";
@@ -167,13 +163,6 @@ const models = [
     name: "Mistral Large",
     providers: ["mistral"],
   },
-];
-
-const categories = [
-  { label: "Create", icon: SparklesIcon },
-  { label: "Explore", icon: CompassIcon },
-  { label: "Code", icon: CodeIcon },
-  { label: "Learn", icon: GraduationCapIcon },
 ];
 
 const suggestions = [
@@ -461,19 +450,6 @@ export default function Home() {
               <h1 className="mb-6 text-2xl font-semibold tracking-tight text-foreground">
                 How can I help you?
               </h1>
-
-              {/* Category pills */}
-              <div className="mb-8 flex flex-wrap justify-center gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.label}
-                    className="flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-sm text-foreground transition-colors hover:bg-accent"
-                  >
-                    <cat.icon className="size-3.5" />
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
 
               {/* Suggestion questions */}
               <div className="w-full max-w-lg">
