@@ -4,6 +4,7 @@ import { createInsertSchema } from "drizzle-zod";
 export const users = pgTable("users", {
   id: text("id").primaryKey(), // fingerprint visitorId
   clerkId: text("clerk_id").unique(),
+  polarCustomerId: text("polar_customer_id").unique(),
   tier: text("tier").default("anonymous").notNull(), // 'anonymous' | 'free' | 'paid'
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
