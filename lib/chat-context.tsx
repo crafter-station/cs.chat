@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 import { useFingerprint } from "@/hooks/use-fingerprint";
 
 interface ChatContextValue {
@@ -43,6 +44,21 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const startNewChat = useCallback(() => {
     setActiveChatId(null);
   }, [setActiveChatId]);
+
+  // Global Cmd+Shift+O → new chat
+  const router = useRouter();
+  const pathname = usePathname();
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.shiftKey && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        startNewChat();
+        if (pathname !== "/") router.push("/");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [startNewChat, pathname, router]);
 
   return (
     <ChatContext.Provider

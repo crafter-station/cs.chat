@@ -221,17 +221,6 @@ export default function Home() {
   const { data: usage } = useUsage();
   const canSend = usage?.canSend !== false;
 
-  // Cmd+Shift+O → new conversation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.metaKey && e.shiftKey && e.key.toLowerCase() === "o") {
-        e.preventDefault();
-        resetToNewChat();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [resetToNewChat]);
 
   const createThread = useCreateThread();
   const generateTitle = useGenerateTitle();
