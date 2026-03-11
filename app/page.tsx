@@ -370,8 +370,10 @@ export default function Home() {
     [selectedModel, setActiveChatId, createThread]
   );
 
+  const isGenerating = status === "streaming" || status === "submitted";
+
   const handleSubmit = (message: PromptInputMessage) => {
-    if (!message.text?.trim() || !canSend) return;
+    if (!message.text?.trim() || !canSend || isGenerating) return;
 
     if (!activeChatId) {
       startNewChat(message.text);
@@ -386,7 +388,7 @@ export default function Home() {
   };
 
   const handleSuggestionClick = (suggestion: string) => {
-    if (!canSend) return;
+    if (!canSend || isGenerating) return;
     if (!activeChatId) {
       startNewChat(suggestion);
     } else {
@@ -573,8 +575,8 @@ export default function Home() {
                     ref={textareaRef}
                     value={text}
                     onChange={(e) => setText(e.target.value)}
-                    disabled={!canSend}
-                    placeholder={canSend ? "Type your message here..." : "Daily limit reached — sign up to continue"}
+                    disabled={!canSend || isGenerating}
+                    placeholder={!canSend ? "Daily limit reached — sign up to continue" : isGenerating ? "Waiting for response..." : "Type your message here..."}
                     className="min-h-12 text-base leading-6"
                   />
                 </PromptInputBody>
