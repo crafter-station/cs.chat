@@ -1,6 +1,11 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-export default clerkMiddleware();
+const isWebhookRoute = createRouteMatcher(["/api/polar/webhook"]);
+
+export default clerkMiddleware((auth, req) => {
+  // Skip Clerk for webhook routes
+  if (isWebhookRoute(req)) return;
+});
 
 export const config = {
   matcher: [
