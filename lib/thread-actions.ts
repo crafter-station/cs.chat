@@ -75,6 +75,13 @@ export async function saveMessagesAction(
   threadId: string,
   msgs: UIMessage[]
 ): Promise<void> {
+  // Verify thread exists before saving messages (guards against race condition
+  // where streaming completes before thread row is committed)
+  const thread = await db.query.threads.findFirst({
+    where: eq(threads.id, threadId),
+  });
+  if (!thread) return;
+
   await db.delete(messages).where(eq(messages.threadId, threadId));
   if (msgs.length > 0) {
     await db.insert(messages).values(

@@ -307,11 +307,17 @@ export default function Home() {
 
     // Persist messages to DB + local cache
     const save = async () => {
-      if (threadReadyRef.current) await threadReadyRef.current;
+      if (threadReadyRef.current) {
+        try {
+          await threadReadyRef.current;
+        } catch {
+          return; // Thread creation failed, skip DB save
+        }
+      }
       setCachedMessages(activeChatId, messages);
       await saveMessagesAction(activeChatId, messages);
     };
-    save();
+    save().catch(() => {});
 
     // Refresh usage count after each completed message
     queryClient.invalidateQueries({ queryKey: ["usage"] });
