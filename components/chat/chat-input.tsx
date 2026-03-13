@@ -1,6 +1,6 @@
 "use client";
 
-import { memo, useCallback, useState, type RefObject } from "react";
+import { memo, useCallback, useEffect, useState, type RefObject } from "react";
 import type { ChatStatus } from "ai";
 import {
   PromptInput,
@@ -98,6 +98,34 @@ export function ChatInput({
     [onModelSelect]
   );
 
+  const handleModelSelectorOpenChange = useCallback(
+    (open: boolean) => {
+      setModelSelectorOpen(open);
+    },
+    []
+  );
+
+  // Prevent Radix from refocusing the trigger; redirect to textarea
+  const handleCloseAutoFocus = useCallback(
+    (e: Event) => {
+      e.preventDefault();
+      textareaRef.current?.focus();
+    },
+    [textareaRef]
+  );
+
+  // Cmd+M → open model selector
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setModelSelectorOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   const handleSubmit = (message: PromptInputMessage) => {
     if (message.text) {
       onSubmit(message.text);
@@ -145,24 +173,27 @@ export function ChatInput({
               <PromptInputFooter className="@container">
                 <PromptInputTools>
                   <ModelSelector
-                    onOpenChange={setModelSelectorOpen}
+                    onOpenChange={handleModelSelectorOpenChange}
                     open={modelSelectorOpen}
                   >
                     <ModelSelectorTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="min-w-0 max-w-[140px] gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground @md:max-w-none"
+                        className="group/model min-w-0 max-w-[140px] gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground @md:max-w-none"
                       >
                         <div className="min-w-0 flex-1 text-left text-sm font-medium">
                           <div className="truncate">
                             {selectedModelData?.name ?? "Select model"}
                           </div>
                         </div>
+                        <kbd className="hidden text-[10px] font-normal text-muted-foreground/50 opacity-0 transition-opacity group-hover/model:opacity-100 @md:inline-flex">
+                          &#8984;K
+                        </kbd>
                         <ChevronDownIcon className="size-4 text-muted-foreground/60 transition-transform duration-200" />
                       </Button>
                     </ModelSelectorTrigger>
-                    <ModelSelectorContent title="Select a model">
+                    <ModelSelectorContent title="Select a model" onCloseAutoFocus={handleCloseAutoFocus}>
                       <ModelSelectorInput placeholder="Search models..." />
                       <ModelSelectorList>
                         <ModelSelectorEmpty>
