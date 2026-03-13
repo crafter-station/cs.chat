@@ -35,6 +35,7 @@ import {
   clearCachedMessages,
 } from "@/lib/message-cache";
 import { BugReportDialog } from "@/components/bug-report-dialog";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: threads = [] } = useThreads();
@@ -166,6 +167,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                     <SettingsIcon />
                     <span>Settings</span>
                   </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Theme</span>
+                    <ThemeToggle />
+                  </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

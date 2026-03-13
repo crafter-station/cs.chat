@@ -6,6 +6,7 @@ import { dark, shadcn } from "@clerk/themes";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Providers } from "@/components/providers";
+import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/react";
 
 const geistSans = Geist({
@@ -56,10 +57,16 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider appearance={{ baseTheme: [dark, shadcn] }}>
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
         <Providers>
           <SidebarProvider
             style={
@@ -74,6 +81,7 @@ export default function RootLayout({
             </SidebarInset>
           </SidebarProvider>
         </Providers>
+        </ThemeProvider>
         <Analytics />
       </body>
     </html>
