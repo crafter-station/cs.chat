@@ -13,18 +13,18 @@ export async function POST(req: Request) {
   );
   if (!success) return response!;
 
-  let body: { messages: UIMessage[]; model: string; fingerprintId?: string };
+  let body: { messages: UIMessage[]; model: string; fingerprintId?: string; sendId?: string };
   try {
     body = await req.json();
   } catch {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
-  const { model, messages, fingerprintId } = body;
+  const { model, messages, fingerprintId, sendId } = body;
 
   // Daily usage limit
   if (fingerprintId) {
     const user = await resolveUser(fingerprintId);
-    const allowed = await incrementUsage(user.id, user.tier);
+    const allowed = await incrementUsage(user.id, user.tier, sendId);
     if (!allowed) {
       return new Response(
         JSON.stringify({

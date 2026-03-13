@@ -37,6 +37,7 @@ interface PendingSend {
   text: string;
   model: string;
   ts: number;
+  sendId: string;
 }
 
 function getPendingSend(threadId: string): PendingSend | null {
@@ -103,6 +104,7 @@ export function useChatController() {
   const pendingMessageRef = useRef<{
     text: string;
     model: string;
+    sendId: string;
   } | null>(null);
 
   // Promise that resolves once the thread row exists in the DB
@@ -135,9 +137,9 @@ export function useChatController() {
 
     // 1. Normal in-session send (pendingMessageRef set by startNewChat)
     if (pendingMessageRef.current) {
-      const { text, model } = pendingMessageRef.current;
+      const { text, model, sendId } = pendingMessageRef.current;
       pendingMessageRef.current = null;
-      sendMessage({ text }, { body: { model, fingerprintId: visitorId } });
+      sendMessage({ text }, { body: { model, fingerprintId: visitorId, sendId } });
       return;
     }
 
@@ -193,9 +195,10 @@ export function useChatController() {
 
         // Replace the synthetic/saved user message and trigger AI response.
         // Using messageId avoids duplicating the user message.
+        // Pass sendId for usage idempotency — re-sends after refresh won't double-count.
         sendMessage(
           { text: pending.text, messageId: msgIdToReplace },
-          { body: { model: pending.model, fingerprintId: visitorId } },
+          { body: { model: pending.model, fingerprintId: visitorId, sendId: pending.sendId } },
         );
       };
       restore().catch(() => {});
@@ -313,6 +316,7 @@ export function useChatController() {
   const startNewChat = useCallback(
     (text: string) => {
       const newId = nanoid();
+      const sendId = nanoid();
 
       // Durable: persist send intent *synchronously* before any async work
       setPendingSend({
@@ -320,9 +324,10 @@ export function useChatController() {
         text,
         model: selectedModel,
         ts: Date.now(),
+        sendId,
       });
 
-      pendingMessageRef.current = { text, model: selectedModel };
+      pendingMessageRef.current = { text, model: selectedModel, sendId };
 
       threadReadyRef.current = createThread.mutateAsync({
         id: newId,
@@ -346,15 +351,17 @@ export function useChatController() {
         startNewChat(text);
       } else {
         // Durable: persist send intent for existing chat too
+        const sendId = nanoid();
         setPendingSend({
           threadId: activeChatId,
           text,
           model: selectedModel,
           ts: Date.now(),
+          sendId,
         });
         sendMessage(
           { text },
-          { body: { model: selectedModel, fingerprintId: visitorId } }
+          { body: { model: selectedModel, fingerprintId: visitorId, sendId } }
         );
       }
     },
