@@ -32,7 +32,11 @@ export function CitationResponse({
   // During streaming or no sources: render plain MessageResponse
   if (mode === "streaming" || sources.length === 0) {
     return (
-      <MessageResponse mode={mode} {...props}>
+      <MessageResponse
+        mode={mode}
+        className={mode === "streaming" ? "streaming-fade" : undefined}
+        {...props}
+      >
         {children}
       </MessageResponse>
     );

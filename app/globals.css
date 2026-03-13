@@ -234,3 +234,55 @@
 .dark .button-reflect:hover::after {
   opacity: 0.3;
 }
+
+/* ─── Streaming text fade-reveal ─── */
+@keyframes stream-fade-in {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+    transform: translateY(4px);
+  }
+  70% {
+    filter: blur(0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+@keyframes stream-shimmer {
+  0% {
+    mask-position: 200% center;
+  }
+  100% {
+    mask-position: -50% center;
+  }
+}
+
+/* Each new block element fades in smoothly */
+.streaming-fade > * {
+  animation: stream-fade-in 0.45s ease-out both;
+}
+
+/* The currently-streaming (last) element gets a shimmer reveal mask */
+.streaming-fade > :last-child {
+  mask-image: linear-gradient(
+    to right,
+    black 25%,
+    rgba(0, 0, 0, 0.35) 50%,
+    black 75%
+  );
+  mask-size: 300% 100%;
+  animation:
+    stream-fade-in 0.45s ease-out both,
+    stream-shimmer 1.8s ease-in-out infinite;
+}
+
+/* Once streaming ends, everything settles instantly */
+.streaming-fade-done > * {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
