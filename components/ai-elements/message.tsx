@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { StreamingParagraph } from "@/components/streaming-paragraph";
 import { cn } from "@/lib/utils";
 import { cjk } from "@streamdown/cjk";
 import { code } from "@streamdown/code";
@@ -323,6 +324,7 @@ export const MessageBranchPage = ({
 export type MessageResponseProps = ComponentProps<typeof Streamdown>;
 
 const streamdownPlugins = { cjk, code, math, mermaid };
+const streamdownComponents = { p: StreamingParagraph };
 
 export const MessageResponse = memo(
   ({ className, ...props }: MessageResponseProps) => (
@@ -333,6 +335,7 @@ export const MessageResponse = memo(
       )}
       plugins={streamdownPlugins}
       {...props}
+      components={streamdownComponents}
     />
   ),
   (prevProps, nextProps) =>
