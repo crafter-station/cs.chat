@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
+import type { UIMessage } from "ai";
 import { useChatContext } from "@/lib/chat-context";
 import {
   useCreateThread,
@@ -12,12 +13,65 @@ import {
 } from "@/hooks/use-threads";
 import { useGenerateTitle } from "@/hooks/use-generate-title";
 import { useUsage } from "@/hooks/use-usage";
-import { fetchMessages, saveMessagesAction } from "@/lib/thread-actions";
+import {
+  fetchMessages,
+  saveMessagesAction,
+  deleteThreadAction,
+  ensureThreadExists,
+} from "@/lib/thread-actions";
 import {
   getCachedMessages,
   setCachedMessages,
+  clearCachedMessages,
   prefetchMessages,
 } from "@/lib/message-cache";
+
+// ── Durable pending-send ────────────────────────────────────────────
+// Persisted to localStorage *synchronously* before any async work so
+// the user's intent survives an immediate page refresh.
+
+const PENDING_SEND_KEY = "c3chat-pending-send";
+
+interface PendingSend {
+  threadId: string;
+  text: string;
+  model: string;
+  ts: number;
+}
+
+function getPendingSend(threadId: string): PendingSend | null {
+  try {
+    const raw = localStorage.getItem(PENDING_SEND_KEY);
+    if (!raw) return null;
+    const send: PendingSend = JSON.parse(raw);
+    if (send.threadId !== threadId) return null;
+    // Expire after 5 minutes
+    if (Date.now() - send.ts > 5 * 60_000) {
+      localStorage.removeItem(PENDING_SEND_KEY);
+      return null;
+    }
+    return send;
+  } catch {
+    localStorage.removeItem(PENDING_SEND_KEY);
+    return null;
+  }
+}
+
+function setPendingSend(send: PendingSend): void {
+  try {
+    localStorage.setItem(PENDING_SEND_KEY, JSON.stringify(send));
+  } catch {
+    // localStorage unavailable — best-effort
+  }
+}
+
+function clearPendingSend(): void {
+  try {
+    localStorage.removeItem(PENDING_SEND_KEY);
+  } catch {}
+}
+
+// ── Hook ────────────────────────────────────────────────────────────
 
 export function useChatController() {
   const {
@@ -64,8 +118,10 @@ export function useChatController() {
     return () => cancelAnimationFrame(id);
   }, [activeChatId, status]);
 
-  // When activeChatId changes: either send pending message (new chat) or load from DB (existing chat)
-  useEffect(() => {
+  // ── Restore / load messages when activeChatId changes ─────────────
+  // useLayoutEffect ensures setMessages runs BEFORE the browser paints,
+  // so the user never sees a blank frame during restore.
+  useLayoutEffect(() => {
     if (!activeChatId) {
       setMessages([]);
       return;
@@ -77,30 +133,121 @@ export function useChatController() {
       setSelectedModel(thread.model);
     }
 
+    // 1. Normal in-session send (pendingMessageRef set by startNewChat)
     if (pendingMessageRef.current) {
-      // New chat — send the queued message now that useChat has the correct ID
       const { text, model } = pendingMessageRef.current;
       pendingMessageRef.current = null;
       sendMessage({ text }, { body: { model, fingerprintId: visitorId } });
-    } else {
-      // Try local cache first for instant switch
-      const cached = getCachedMessages(activeChatId);
-      if (cached) {
-        setMessages(cached);
-      } else {
-        // First visit — fetch from DB, then cache
-        fetchMessages(activeChatId).then((msgs) => {
+      return;
+    }
+
+    // 2. Durable re-send after page refresh (pendingSend in localStorage)
+    //    LOCAL-FIRST: show the user's message immediately from localStorage
+    //    so the UI never shows a blank/stuck state, then re-send in background.
+    const pending = getPendingSend(activeChatId);
+    if (pending) {
+      clearPendingSend();
+
+      // ── SYNC: display user's message instantly (no blank screen) ──
+      const pendingMsgId = `pending-${activeChatId}`;
+      const syntheticUserMsg: UIMessage = {
+        id: pendingMsgId,
+        role: "user",
+        parts: [{ type: "text", text: pending.text }],
+      };
+      setMessages([syntheticUserMsg]);
+
+      // ── ASYNC: set up thread, load history, then trigger AI response ──
+      const restore = async () => {
+        // Load any existing history (for follow-up messages on existing chats)
+        const msgs = await fetchMessages(activeChatId);
+        let msgIdToReplace = pendingMsgId;
+
+        if (msgs.length > 0) {
+          const lastMsg = msgs[msgs.length - 1];
+          if (lastMsg.role === "user") {
+            // User message was eagerly saved before refresh — use its ID
+            msgIdToReplace = lastMsg.id;
+            setMessages(msgs);
+          } else {
+            // Previous conversation is complete; this is a follow-up message
+            setMessages([...msgs, syntheticUserMsg]);
+          }
           setCachedMessages(activeChatId, msgs);
-          setMessages(msgs);
-        });
-      }
+        }
+
+        // Ensure the thread row exists (might have been interrupted before
+        // the original createThread completed)
+        if (visitorId) {
+          threadReadyRef.current = ensureThreadExists(
+            activeChatId,
+            pending.model,
+            visitorId,
+          );
+          await threadReadyRef.current;
+        }
+
+        // Re-generate title (the original was likely interrupted by refresh)
+        generateTitle.mutate({ prompt: pending.text, threadId: activeChatId });
+
+        // Replace the synthetic/saved user message and trigger AI response.
+        // Using messageId avoids duplicating the user message.
+        sendMessage(
+          { text: pending.text, messageId: msgIdToReplace },
+          { body: { model: pending.model, fingerprintId: visitorId } },
+        );
+      };
+      restore().catch(() => {});
+      return;
+    }
+
+    // 3. Normal load from cache / DB
+    const cached = getCachedMessages(activeChatId);
+    if (cached) {
+      setMessages(cached);
+    } else {
+      fetchMessages(activeChatId).then((msgs) => {
+        if (msgs.length === 0) {
+          // Orphaned empty thread — reset to new chat
+          setActiveChatId(null);
+          clearCachedMessages(activeChatId);
+          deleteThreadAction(activeChatId).catch(() => {});
+          queryClient.invalidateQueries({ queryKey: ["threads"] });
+          return;
+        }
+        setCachedMessages(activeChatId, msgs);
+        setMessages(msgs);
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatId]);
 
-  // Persist messages after streaming completes
+  // ── Save user message eagerly on "submitted" (belt-and-suspenders) ─
+  useEffect(() => {
+    if (status !== "submitted" || !activeChatId || messages.length === 0)
+      return;
+
+    const save = async () => {
+      if (threadReadyRef.current) {
+        try {
+          await threadReadyRef.current;
+        } catch {
+          return;
+        }
+      }
+      setCachedMessages(activeChatId, messages);
+      await saveMessagesAction(activeChatId, messages);
+    };
+    save().catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, activeChatId]);
+
+  // ── Persist full conversation when streaming completes ─────────────
   useEffect(() => {
     if (status !== "ready" || !activeChatId || messages.length === 0) return;
+
+    // Send is complete — clear the durable intent
+    clearPendingSend();
 
     const save = async () => {
       if (threadReadyRef.current) {
@@ -141,6 +288,14 @@ export function useChatController() {
     (text: string) => {
       const newId = nanoid();
 
+      // Durable: persist send intent *synchronously* before any async work
+      setPendingSend({
+        threadId: newId,
+        text,
+        model: selectedModel,
+        ts: Date.now(),
+      });
+
       pendingMessageRef.current = { text, model: selectedModel };
 
       threadReadyRef.current = createThread.mutateAsync({
@@ -164,6 +319,13 @@ export function useChatController() {
       if (!activeChatId) {
         startNewChat(text);
       } else {
+        // Durable: persist send intent for existing chat too
+        setPendingSend({
+          threadId: activeChatId,
+          text,
+          model: selectedModel,
+          ts: Date.now(),
+        });
         sendMessage(
           { text },
           { body: { model: selectedModel, fingerprintId: visitorId } }
