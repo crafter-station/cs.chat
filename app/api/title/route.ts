@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     model: model, 
     maxOutputTokens: 20,
     system:
-      "Generate a concise title (6 words max) for a chat that starts with the following message. Return only the title, no quotes or punctuation.",
+      "Generate a concise title (6 words max) for a chat based on the user's message. Infer the likely topic of conversation. Return only the title, no quotes or punctuation.",
     prompt,
   });
 
