@@ -162,7 +162,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
                 </BugReportDialog>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild isActive={pathname === "/s"}>
                   <Link href="/s">
                     <SettingsIcon />
                     <span>Settings</span>
