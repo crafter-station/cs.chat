@@ -10,8 +10,13 @@ export async function POST(req: Request) {
   );
   if (!success) return response!;
 
-  const { prompt, model }: { prompt: string; model: string } =
-    await req.json();
+  let body: { prompt: string; model: string };
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { prompt, model } = body;
 
   const { text } = await generateText({
     model: model, 

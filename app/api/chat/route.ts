@@ -13,15 +13,13 @@ export async function POST(req: Request) {
   );
   if (!success) return response!;
 
-  const {
-    model,
-    messages,
-    fingerprintId,
-  }: {
-    messages: UIMessage[];
-    model: string;
-    fingerprintId?: string;
-  } = await req.json();
+  let body: { messages: UIMessage[]; model: string; fingerprintId?: string };
+  try {
+    body = await req.json();
+  } catch {
+    return Response.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  const { model, messages, fingerprintId } = body;
 
   // Daily usage limit
   if (fingerprintId) {
