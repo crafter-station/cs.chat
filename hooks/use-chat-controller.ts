@@ -144,10 +144,11 @@ export function useChatController() {
     // 2. Durable re-send after page refresh (pendingSend in localStorage)
     //    LOCAL-FIRST: show the user's message immediately from localStorage
     //    so the UI never shows a blank/stuck state, then re-send in background.
+    //    IMPORTANT: do NOT clearPendingSend here — it survives until the
+    //    response fully completes and is saved to DB. This makes multiple
+    //    rapid refreshes safe: each one re-enters this path and retries.
     const pending = getPendingSend(activeChatId);
     if (pending) {
-      clearPendingSend();
-
       // ── SYNC: display user's message instantly (no blank screen) ──
       const pendingMsgId = `pending-${activeChatId}`;
       const syntheticUserMsg: UIMessage = {
@@ -208,6 +209,13 @@ export function useChatController() {
     } else {
       fetchMessages(activeChatId).then((msgs) => {
         if (msgs.length === 0) {
+          // Guard: don't nuke a thread that was just created (< 30s ago).
+          // The messages may simply not have been saved yet (race).
+          const t = threadsRef.current?.find((th) => th.id === activeChatId);
+          if (t && Date.now() - new Date(t.createdAt).getTime() < 30_000) {
+            return;
+          }
+
           // Orphaned empty thread — reset to new chat
           setActiveChatId(null);
           clearCachedMessages(activeChatId);
@@ -246,9 +254,6 @@ export function useChatController() {
   useEffect(() => {
     if (status !== "ready" || !activeChatId || messages.length === 0) return;
 
-    // Send is complete — clear the durable intent
-    clearPendingSend();
-
     const save = async () => {
       if (threadReadyRef.current) {
         try {
@@ -259,8 +264,29 @@ export function useChatController() {
       }
       setCachedMessages(activeChatId, messages);
       await saveMessagesAction(activeChatId, messages);
+
+      // Only clear the durable intent AFTER the save succeeds.
+      // This way, if the user refreshes before save completes,
+      // the pending send survives and re-triggers the restore.
+      clearPendingSend();
     };
     save().catch(() => {});
+
+    // Safety net: if the thread still has no title (e.g. all previous
+    // generateTitle calls were aborted by rapid refreshes), generate now.
+    const thread = threadsRef.current?.find((t) => t.id === activeChatId);
+    if (!thread?.title && messages.length > 0) {
+      const firstUserMsg = messages.find((m) => m.role === "user");
+      if (firstUserMsg) {
+        const text = firstUserMsg.parts
+          .filter((p): p is { type: "text"; text: string } => p.type === "text")
+          .map((p) => p.text)
+          .join(" ");
+        if (text) {
+          generateTitle.mutate({ prompt: text, threadId: activeChatId });
+        }
+      }
+    }
 
     queryClient.invalidateQueries({ queryKey: ["usage"] });
     // eslint-disable-next-line react-hooks/exhaustive-deps
