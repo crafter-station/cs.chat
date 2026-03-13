@@ -9,7 +9,6 @@ import {
   PromptInputTools,
   PromptInputSubmit,
   PromptInputTextarea,
-  PromptInputButton,
   type PromptInputMessage,
 } from "@/components/ai-elements/prompt-input";
 import {
@@ -26,7 +25,7 @@ import {
   ModelSelectorTrigger,
 } from "@/components/ai-elements/model-selector";
 import { Button } from "@/components/ui/button";
-import { CheckIcon, ChevronDownIcon, GlobeIcon, PaperclipIcon } from "lucide-react";
+import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { models, chefs, type Model } from "@/lib/models";
 import { UsageBanner } from "@/components/usage-banner";
 
@@ -115,11 +114,11 @@ export function ChatInput({
             }`}
           >
             Make sure you agree to our{" "}
-            <a href="#" className="font-medium text-foreground underline">
+            <a href="/terms" className="font-medium text-foreground underline">
               Terms
             </a>{" "}
             and our{" "}
-            <a href="#" className="font-medium text-foreground underline">
+            <a href="/privacy" className="font-medium text-foreground underline">
               Privacy Policy
             </a>
           </p>
@@ -187,22 +186,8 @@ export function ChatInput({
                     </ModelSelectorContent>
                   </ModelSelector>
 
-                  <PromptInputButton
-                    tooltip="Search the web"
-                    variant="ghost"
-                    className="gap-1.5 rounded-full border border-border/40 px-2.5 text-xs text-muted-foreground"
-                  >
-                    <GlobeIcon className="size-3.5" />
-                    <span className="hidden @md:block">Search</span>
-                  </PromptInputButton>
-
-                  <PromptInputButton
-                    tooltip="Attach files"
-                    variant="ghost"
-                    className="rounded-full border border-border/40 px-2.5 text-muted-foreground"
-                  >
-                    <PaperclipIcon className="size-3.5" />
-                  </PromptInputButton>
+                  {/* TODO: Search the web — not yet available */}
+                  {/* TODO: Attach files — not yet available */}
                 </PromptInputTools>
 
                 <PromptInputSubmit
