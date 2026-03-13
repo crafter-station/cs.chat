@@ -38,6 +38,19 @@ export async function createThreadAction(
   return thread;
 }
 
+/** Idempotent: create thread if it doesn't exist, no-op if it does. */
+export async function ensureThreadExists(
+  id: string,
+  model: string,
+  userId: string
+): Promise<void> {
+  await getOrCreateUser(userId);
+  await db
+    .insert(threads)
+    .values({ id, model, userId })
+    .onConflictDoNothing();
+}
+
 export async function updateThreadTitleAction(
   id: string,
   title: string
