@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BugIcon,
   LogInIcon,
   MessageSquarePlusIcon,
   SearchIcon,
@@ -33,6 +34,7 @@ import {
   prefetchMessages,
   clearCachedMessages,
 } from "@/lib/message-cache";
+import { BugReportDialog } from "@/components/bug-report-dialog";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: threads = [] } = useThreads();
@@ -150,6 +152,14 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroup className="mt-auto">
           <SidebarGroupContent>
             <SidebarMenu>
+              <SidebarMenuItem>
+                <BugReportDialog>
+                  <SidebarMenuButton>
+                    <BugIcon />
+                    <span>Report Bug</span>
+                  </SidebarMenuButton>
+                </BugReportDialog>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/s">
