@@ -4,7 +4,7 @@ import { useAuth, useUser, SignInButton } from "@clerk/nextjs";
 import { useUsage } from "@/hooks/use-usage";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CrownIcon, UserIcon, ZapIcon } from "lucide-react";
+import { ArrowLeftIcon, CrownIcon, UserIcon, ZapIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -17,7 +17,15 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto flex min-h-svh max-w-lg flex-col gap-8 p-6 pt-16">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <ArrowLeftIcon className="size-4" />
+        </Link>
+        <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+      </div>
 
       {/* Account */}
       <section className="space-y-3">
@@ -54,12 +62,12 @@ export default function SettingsPage() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3">
               <p className="text-sm text-muted-foreground">
                 Sign in to sync your data
               </p>
               <SignInButton mode="modal">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="w-full">
                   Sign in
                 </Button>
               </SignInButton>
