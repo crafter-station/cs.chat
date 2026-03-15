@@ -35,11 +35,24 @@ export async function getUsage(
 
 export async function incrementUsage(
   userId: string,
-  tier: string
+  tier: string,
+  sendId?: string
 ): Promise<boolean> {
   const limit = TIER_LIMITS[tier] ?? null;
   if (limit === null) return true; // unlimited
   if (!redis) return true; // no redis = no enforcement
+
+  // Idempotency: if this sendId was already counted, skip the increment
+  if (sendId) {
+    const dedupKey = `usage_sent:${sendId}`;
+    const already = await redis.get<number>(dedupKey);
+    if (already) {
+      // Already counted — still check if user is within limit
+      const key = getDailyKey(userId);
+      const current = (await redis.get<number>(key)) ?? 0;
+      return current <= limit;
+    }
+  }
 
   const key = getDailyKey(userId);
   const current = (await redis.get<number>(key)) ?? 0;
@@ -48,6 +61,12 @@ export async function incrementUsage(
   const pipeline = redis.pipeline();
   pipeline.incr(key);
   pipeline.expire(key, secondsUntilMidnightUTC());
+  // Mark this sendId as counted (expires same time as the daily key)
+  if (sendId) {
+    const dedupKey = `usage_sent:${sendId}`;
+    pipeline.set(dedupKey, 1);
+    pipeline.expire(dedupKey, secondsUntilMidnightUTC());
+  }
   await pipeline.exec();
   return true;
 }
