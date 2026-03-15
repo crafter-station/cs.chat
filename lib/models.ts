@@ -94,8 +94,22 @@ export const models: Model[] = [
   {
     chef: "Mistral AI",
     chefSlug: "mistral",
-    id: "mistral/mistral-large-latest",
+    id: "mistral/mistral-large-3",
     name: "Mistral Large",
+    providers: ["mistral"],
+  },
+  {
+    chef: "Mistral AI",
+    chefSlug: "mistral",
+    id: "mistral/magistral-medium",
+    name: "Magistral Medium",
+    providers: ["mistral"],
+  },
+  {
+    chef: "Mistral AI",
+    chefSlug: "mistral",
+    id: "mistral/codestral",
+    name: "Codestral",
     providers: ["mistral"],
   },
 ];
