@@ -97,7 +97,7 @@ export default function SettingsPage() {
               <CrownIcon className="size-4 text-rose" />
               <span className="text-sm font-semibold">Pro Plan</span>
               <span className="ml-auto text-sm font-medium text-muted-foreground">
-                $10/mo
+                $6/mo
               </span>
             </div>
             <p className="mt-1.5 text-xs text-muted-foreground">

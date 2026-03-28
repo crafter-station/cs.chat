@@ -106,7 +106,7 @@ export function PricingContent() {
             </span>
             <h2 className="mb-1 text-lg font-semibold">Pro</h2>
             <div className="mb-4">
-              <span className="text-3xl font-bold">$10</span>
+              <span className="text-3xl font-bold">$6</span>
               <span className="text-muted-foreground">/month</span>
             </div>
             <p className="mb-6 text-sm text-muted-foreground">
