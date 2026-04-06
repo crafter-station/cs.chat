@@ -126,7 +126,7 @@ export function PricingContent() {
               </Link>
             ) : isSignedIn ? (
               <Link
-                href={`/api/polar/checkout?products=${POLAR_PRO_PRODUCT_ID}&customerExternalId=${userId}&customerEmail=${encodeURIComponent(user?.primaryEmailAddress?.emailAddress ?? "")}&customerName=${encodeURIComponent(user?.fullName ?? "")}`}
+                href={`https://buy.polar.sh/polar_cl_Hjw0Si2OUPimpeh7eFXm38wOPAxxGntGx4WFI3QS8A9?customerExternalId=${userId}&customerEmail=${encodeURIComponent(user?.primaryEmailAddress?.emailAddress ?? "")}&customerName=${encodeURIComponent(user?.fullName ?? "")}`}
               >
                 <Button className="w-full bg-rose text-rose-foreground hover:bg-rose/90">Upgrade to Pro</Button>
               </Link>
