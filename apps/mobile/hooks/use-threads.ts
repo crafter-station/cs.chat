@@ -19,7 +19,14 @@ export function useThreads() {
   const { visitorId } = useChatContext()
   return useQuery({
     queryKey: [...THREADS_KEY, visitorId],
-    queryFn: () => listThreads(visitorId!),
+    queryFn: async () => {
+      try {
+        return await listThreads(visitorId!)
+      } catch (err) {
+        console.warn("[threads] listThreads failed", err)
+        throw err
+      }
+    },
     enabled: !!visitorId,
   })
 }
@@ -49,7 +56,8 @@ export function useCreateThread() {
       ])
       return { previous }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.warn("[threads] mutation error", err)
       if (context?.previous) {
         queryClient.setQueryData(
           [...THREADS_KEY, visitorId],
@@ -79,7 +87,8 @@ export function useUpdateThreadTitle() {
       )
       return { previous }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.warn("[threads] mutation error", err)
       if (context?.previous) {
         queryClient.setQueryData(
           [...THREADS_KEY, visitorId],
@@ -109,7 +118,8 @@ export function useUpdateThreadModel() {
       )
       return { previous }
     },
-    onError: (_err, _vars, context) => {
+    onError: (err, _vars, context) => {
+      console.warn("[threads] mutation error", err)
       if (context?.previous) {
         queryClient.setQueryData(
           [...THREADS_KEY, visitorId],
@@ -134,7 +144,8 @@ export function useDeleteThread() {
       )
       return { previous }
     },
-    onError: (_err, _id, context) => {
+    onError: (err, _id, context) => {
+      console.warn("[threads] delete error", err)
       if (context?.previous) {
         queryClient.setQueryData(
           [...THREADS_KEY, visitorId],

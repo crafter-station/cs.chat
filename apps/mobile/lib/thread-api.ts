@@ -13,16 +13,32 @@ export interface ChatThread {
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const token = await getClerkToken()
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(init?.headers ?? {}),
-    },
-  })
+  const url = `${API_BASE_URL}${path}`
+  const method = init?.method ?? "GET"
+  let res: Response
+  try {
+    res = await fetch(url, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        ...(init?.headers ?? {}),
+      },
+    })
+  } catch (err) {
+    console.warn(`[thread-api] ${method} ${url} network error`, err)
+    throw err
+  }
   if (!res.ok) {
-    throw new Error(`${init?.method ?? "GET"} ${path} failed: ${res.status}`)
+    let body = ""
+    try {
+      body = await res.text()
+    } catch {}
+    console.warn(
+      `[thread-api] ${method} ${url} -> ${res.status} ${res.statusText}`,
+      body,
+    )
+    throw new Error(`${method} ${path} failed: ${res.status}`)
   }
   return res.json() as Promise<T>
 }
