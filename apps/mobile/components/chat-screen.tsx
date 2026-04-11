@@ -6,11 +6,12 @@ import {
   useRef,
   useState,
 } from "react"
-import { Pressable, StyleSheet, View } from "react-native"
+import { Keyboard, Pressable, StyleSheet, View } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 import { useChat } from "@ai-sdk/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { type UIMessage } from "ai"
+import * as Haptics from "expo-haptics"
 import {
   ChatMessageItem,
   Conversation,
@@ -128,6 +129,15 @@ export function ChatScreen() {
 
   const isBusy = status === "submitted" || status === "streaming"
 
+  // Light impact when the reply starts arriving (submitted → streaming).
+  const prevStatusRef = useRef(status)
+  useEffect(() => {
+    if (prevStatusRef.current === "submitted" && status === "streaming") {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
+    }
+    prevStatusRef.current = status
+  }, [status])
+
   // Load messages when the active thread changes.
   useEffect(() => {
     if (!activeChatId) {
@@ -192,6 +202,7 @@ export function ChatScreen() {
   const handleSubmit = useCallback(() => {
     const text = input.trim()
     if (!text || isBusy || !visitorId || !canSend) return
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
     setInput("")
 
     if (!activeChatId) {
@@ -222,6 +233,7 @@ export function ChatScreen() {
   const handleSuggestion = useCallback(
     (text: string) => {
       if (isBusy || !visitorId || !canSend) return
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
       if (!activeChatId) {
         const newId = nanoid()
         freshChatRef.current = true
@@ -248,6 +260,7 @@ export function ChatScreen() {
   )
 
   const handleNewChat = useCallback(() => {
+    Keyboard.dismiss()
     if (isBusy) stop()
     threadReadyRef.current = null
     setActiveChatId(null)
@@ -258,6 +271,7 @@ export function ChatScreen() {
 
   const handleSelectThread = useCallback(
     (id: string) => {
+      Keyboard.dismiss()
       if (isBusy) stop()
       threadReadyRef.current = null
       setActiveChatId(id)
@@ -276,7 +290,13 @@ export function ChatScreen() {
     [setSelectedModel, activeChatId, updateThreadModel],
   )
 
+  const handleOpenModelMenu = useCallback(() => {
+    Keyboard.dismiss()
+    setModelMenuOpen(true)
+  }, [])
+
   const handleToggleDrawer = useCallback(() => {
+    Keyboard.dismiss()
     setDrawerOpen((v) => !v)
   }, [])
 
@@ -285,8 +305,13 @@ export function ChatScreen() {
   }, [])
 
   const handleSignInPress = useCallback(() => {
+    Keyboard.dismiss()
     setDrawerOpen(false)
     setSignInOpen(true)
+  }, [])
+
+  const handleDismissKeyboard = useCallback(() => {
+    Keyboard.dismiss()
   }, [])
 
   const renderMessage = useCallback(
@@ -328,22 +353,27 @@ export function ChatScreen() {
             </View>
             <ModelSelectorTrigger
               selectedModelId={selectedModel}
-              onPress={() => setModelMenuOpen(true)}
+              onPress={handleOpenModelMenu}
             />
             <View style={[styles.headerSide, styles.headerSideRight]}>
               <HeaderIconButton icon={Plus} onPress={handleNewChat} />
             </View>
           </View>
 
-          <Conversation
-            ref={conversationRef}
+          <Pressable
+            onPress={handleDismissKeyboard}
             style={styles.conversation}
-            messages={messages}
-            renderMessage={renderMessage}
-            isStreaming={isBusy}
-            onIsAtBottomChange={setIsAtBottom}
-            emptyState={<View style={styles.emptyState} />}
-          />
+          >
+            <Conversation
+              ref={conversationRef}
+              style={styles.conversation}
+              messages={messages}
+              renderMessage={renderMessage}
+              isStreaming={isBusy}
+              onIsAtBottomChange={setIsAtBottom}
+              emptyState={<View style={styles.emptyState} />}
+            />
+          </Pressable>
 
           <ConversationScrollButton
             visible={!isAtBottom && messages.length > 0}
