@@ -1,5 +1,5 @@
 {
-  "name": "cs.chat",
+  "name": "@cs-chat/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,15 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:push": "bun --env-file .env.local drizzle-kit push",
-    "db:generate": "bun --env-file .env.local drizzle-kit generate",
-    "db:migrate": "bun --env-file .env.local drizzle-kit migrate",
-    "db:studio": "bun --env-file .env.local drizzle-kit studio"
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo",
+    "db:push": "bun --env-file .env drizzle-kit push",
+    "db:generate": "bun --env-file .env drizzle-kit generate",
+    "db:migrate": "bun --env-file .env drizzle-kit migrate",
+    "db:studio": "bun --env-file .env drizzle-kit studio"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.77",
     "@clerk/nextjs": "^6.37.3",
     "@clerk/themes": "^2.4.51",
+    "@cs-chat/shared": "workspace:*",
     "@fingerprintjs/fingerprintjs": "^5.0.1",
     "@neondatabase/serverless": "^1.0.2",
     "@polar-sh/nextjs": "^0.9.4",
@@ -73,6 +76,5 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ],
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  ]
 }
