@@ -1,6 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "bun install",
-  "buildCommand": "bun turbo run build --filter=@cs-chat/web",
-  "outputDirectory": "apps/web/.next"
-}
