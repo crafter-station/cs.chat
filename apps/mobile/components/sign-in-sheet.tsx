@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { KeyboardAvoidingView } from "react-native-keyboard-controller"
 import { useAIElementsTheme } from "@crafter/rn-ai-elements"
 import { GlassView, isLiquidGlassAvailable } from "expo-glass-effect"
 import { useSignIn, useSignUp } from "@clerk/expo"
@@ -166,6 +167,11 @@ export function SignInSheet({ visible, onClose }: SignInSheetProps) {
       statusBarTranslucent
     >
       <Pressable style={styles.backdrop} onPress={onClose}>
+        <KeyboardAvoidingView
+          behavior="padding"
+          keyboardVerticalOffset={0}
+          style={styles.kavWrap}
+        >
         <Pressable
           onPress={(e) => e.stopPropagation()}
           style={{ width: "100%" }}
@@ -319,6 +325,7 @@ export function SignInSheet({ visible, onClose }: SignInSheetProps) {
             </Pressable>
           </GlassView>
         </Pressable>
+        </KeyboardAvoidingView>
       </Pressable>
     </Modal>
   )
@@ -329,6 +336,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.45)",
     justifyContent: "flex-end",
+  },
+  kavWrap: {
+    width: "100%",
   },
   sheet: {
     borderTopLeftRadius: 28,
