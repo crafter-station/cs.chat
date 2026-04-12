@@ -89,6 +89,7 @@ export function ModelSelectorMenu({
         <Pressable onPress={(e) => e.stopPropagation()}>
           <GlassView
             glassEffectStyle="regular"
+            colorScheme={theme.dark ? "dark" : "light"}
             style={[
               styles.menu,
               {

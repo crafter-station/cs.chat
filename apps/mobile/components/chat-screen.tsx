@@ -496,6 +496,7 @@ function HeaderIconButton({ icon: Icon, onPress }: HeaderIconButtonProps) {
     >
       <GlassView
         glassEffectStyle="regular"
+        colorScheme={theme.dark ? "dark" : "light"}
         style={[
           styles.headerButton,
           {
