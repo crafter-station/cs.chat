@@ -309,33 +309,16 @@ export function ChatScreen() {
     sendMessage,
   ])
 
+  // Suggestions populate the input instead of sending. The user taps
+  // Send themselves — cleaner than racing the keyboard and useChat's
+  // state machine from a tap that happens while the keyboard is open.
   const handleSuggestion = useCallback(
     (text: string) => {
-      if (isBusy || !visitorId || !canSend) return
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
-      if (!activeChatId) {
-        const newId = nanoid()
-        freshChatRef.current = true
-        threadReadyRef.current = createThread.mutateAsync({
-          id: newId,
-          model: selectedModel,
-        })
-        generateTitle.mutate({ prompt: text, threadId: newId })
-        setActiveChatId(newId)
-      }
-      sendMessage({ text })
+      if (isBusy || !canSend) return
+      Haptics.selectionAsync().catch(() => {})
+      setInput(text)
     },
-    [
-      isBusy,
-      visitorId,
-      canSend,
-      activeChatId,
-      selectedModel,
-      createThread,
-      generateTitle,
-      setActiveChatId,
-      sendMessage,
-    ],
+    [isBusy, canSend],
   )
 
   const handleNewChat = useCallback(() => {
