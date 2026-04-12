@@ -71,16 +71,16 @@ C3.chat is an open-source AI chat interface that lets you talk to multiple AI mo
 git clone https://github.com/crafter-station/cs.chat.git
 cd cs.chat
 
-# Install dependencies
+# Install dependencies (Turborepo workspace, run from the repo root)
 bun install
 
-# Set up environment variables
-cp .env.example .env.local
+# Configure the web app's env vars
+cp apps/web/.env.example apps/web/.env
 
 # Push the database schema
 bun run db:push
 
-# Start the development server
+# Start both the web and mobile dev servers via Turbo
 bun run dev
 ```
 
@@ -114,20 +114,27 @@ bun run dev
 
 ## Project Structure
 
+Monorepo managed with [Turborepo](https://turborepo.com) and Bun workspaces.
+
 ```
 cs.chat/
-├── app/
-│   ├── api/chat/        # Streaming chat API route
-│   ├── layout.tsx       # Root layout with sidebar
-│   ├── page.tsx         # Main chat interface
-│   └── globals.css      # Theme & custom CSS variables
-├── components/
-│   ├── ai-elements/     # Chat UI components (conversation, message, prompt-input, model-selector)
-│   ├── ui/              # shadcn/ui base components
-│   └── logos/           # Brand logos
-├── hooks/               # Custom React hooks (threads, usage, title generation)
-├── lib/                 # Utilities (rate limiting, caching, user service)
-└── public/              # Static assets & OG images
+├── apps/
+│   ├── web/             # Next.js web app
+│   │   ├── app/         # Routes + streaming chat API
+│   │   ├── components/  # UI, ai-elements, sidebar, chat
+│   │   ├── hooks/       # use-threads, use-usage, chat controller
+│   │   ├── lib/         # Rate limit, user service, thread actions
+│   │   ├── db/          # Drizzle schema + client
+│   │   └── public/      # Static assets & OG images
+│   └── mobile/          # Expo (React Native) app
+│       ├── app/         # expo-router entries
+│       ├── components/  # chat-screen, sidebar, drawer, model-selector
+│       ├── hooks/       # use-threads, use-usage
+│       └── lib/         # API client, auth context, theme, query client
+├── packages/
+│   └── shared/          # Cross-app types, model list, defaults
+├── turbo.json           # Pipeline + env passthrough
+└── vercel.json          # Vercel config (see apps/web/vercel.json)
 ```
 
 ## Contributing
