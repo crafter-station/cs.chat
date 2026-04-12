@@ -389,10 +389,6 @@ export function ChatScreen() {
     setSignInOpen(true)
   }, [])
 
-  const handleDismissKeyboard = useCallback(() => {
-    Keyboard.dismiss()
-  }, [])
-
   const renderMessage = useCallback(
     (msg: UIMessage) => (
       <ChatMessageItem item={uiMessageToChatMessageData(msg)} />
@@ -439,20 +435,15 @@ export function ChatScreen() {
             </View>
           </View>
 
-          <Pressable
-            onPress={handleDismissKeyboard}
+          <Conversation
+            ref={conversationRef}
             style={styles.conversation}
-          >
-            <Conversation
-              ref={conversationRef}
-              style={styles.conversation}
-              messages={messages}
-              renderMessage={renderMessage}
-              isStreaming={isBusy}
-              onIsAtBottomChange={setIsAtBottom}
-              emptyState={<View style={styles.emptyState} />}
-            />
-          </Pressable>
+            messages={messages}
+            renderMessage={renderMessage}
+            isStreaming={isBusy}
+            onIsAtBottomChange={setIsAtBottom}
+            emptyState={<View style={styles.emptyState} />}
+          />
 
           <ConversationScrollButton
             visible={!isAtBottom && messages.length > 0}
