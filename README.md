@@ -1,4 +1,4 @@
-![hero](public/og.png)
+![hero](apps/web/public/og.png)
 
 <h1 align="center">
   C3.chat
