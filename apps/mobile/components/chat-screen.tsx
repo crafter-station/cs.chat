@@ -127,6 +127,19 @@ export function ChatScreen() {
     onError: (err) => console.warn("[chat]", err),
   })
 
+  // Mirror messages into a ref so the load-effect cleanup can read the
+  // latest value without having to subscribe to messages as a dep.
+  const messagesRef = useRef(messages)
+  messagesRef.current = messages
+
+  // Track the activeChatId from the previous *committed* render. Save
+  // effects compare against it to detect a just-happened thread switch,
+  // in which case the `messages` still in scope belong to the previous
+  // thread (setMessages([]) from the load effect hasn't flushed yet).
+  // An explicit effect at the bottom of the component updates this ref
+  // AFTER the save effects run.
+  const prevActiveChatIdRef = useRef(activeChatId)
+
   const isBusy = status === "submitted" || status === "streaming"
 
   // Light impact when the reply starts arriving (submitted → streaming).
@@ -140,7 +153,12 @@ export function ChatScreen() {
 
   // Load messages when the active thread changes.
   useEffect(() => {
-    if (!activeChatId) {
+    // Capture the id this effect is "for". The cleanup will use this to
+    // persist the outgoing thread's messages under the correct id, even
+    // after activeChatId has already moved on.
+    const forId = activeChatId
+
+    if (!forId) {
       setMessages([])
       return
     }
@@ -152,19 +170,42 @@ export function ChatScreen() {
       return
     }
 
-    // Restore the thread's stored model.
-    const thread = threadsRef.current?.find((t) => t.id === activeChatId)
+    const thread = threadsRef.current?.find((t) => t.id === forId)
     if (thread) setSelectedModel(thread.model)
 
+    // Clear immediately so we don't briefly render the previous thread's
+    // messages while the new ones are loading. Without this, tapping thread
+    // B while still viewing thread A shows A's content until B's fetch
+    // resolves — which looks like "thread B is showing thread A".
+    setMessages([])
+
     let cancelled = false
-    fetchThreadMessages(activeChatId)
+    fetchThreadMessages(forId)
       .then((msgs) => {
         if (cancelled) return
+        // If the server returned empty but the thread was just created
+        // (<30s ago), the save effect may not have completed server-side
+        // yet. Leave the cleared state; the next save will populate it.
+        if (msgs.length === 0 && thread) {
+          const createdAt = new Date(thread.createdAt).getTime()
+          if (Date.now() - createdAt < 30_000) return
+        }
         setMessages(msgs)
       })
       .catch((err) => console.warn("[chat] load messages", err))
+
     return () => {
       cancelled = true
+      // Persist the outgoing thread's messages before moving on. Uses
+      // `forId` from the closure (= the thread we're leaving) and
+      // messagesRef for the latest in-memory state. Fire-and-forget so
+      // effect cleanup stays synchronous.
+      const leaving = messagesRef.current
+      if (leaving.length > 0) {
+        void saveThreadMessages(forId, leaving).catch((err) =>
+          console.warn("[chat] save on leave", err),
+        )
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeChatId])
@@ -176,8 +217,39 @@ export function ChatScreen() {
     queryClient.invalidateQueries({ queryKey: ["usage"] })
   }, [auth.isSignedIn, queryClient])
 
+  // Eager save on "submitted" — persists the user's message the moment
+  // they hit send, so even a failed / aborted stream leaves the user
+  // message on the server for the thread.
+  useEffect(() => {
+    // Skip if activeChatId just changed: the `messages` in scope still
+    // belong to the previous thread; saving them under the new id would
+    // corrupt the new thread's row.
+    if (prevActiveChatIdRef.current !== activeChatId) return
+    if (status !== "submitted" || !activeChatId || messages.length === 0)
+      return
+    const save = async () => {
+      if (threadReadyRef.current) {
+        try {
+          await threadReadyRef.current
+        } catch {
+          return
+        }
+      }
+      try {
+        await saveThreadMessages(activeChatId, messages)
+      } catch (err) {
+        console.warn("[chat] eager save", err)
+      }
+    }
+    save()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, activeChatId])
+
   // Persist the conversation when a stream completes.
   useEffect(() => {
+    // Same guard as the eager save: bail if this run was triggered by a
+    // thread switch rather than by status flipping to ready in-place.
+    if (prevActiveChatIdRef.current !== activeChatId) return
     if (status !== "ready" || !activeChatId || messages.length === 0) return
 
     const save = async () => {
@@ -198,6 +270,13 @@ export function ChatScreen() {
     save()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, activeChatId])
+
+  // Update the prev-activeChatId ref AFTER the save effects so they see
+  // the value from the previous committed render. Source order matters:
+  // this effect must come below the save effects.
+  useEffect(() => {
+    prevActiveChatIdRef.current = activeChatId
+  }, [activeChatId])
 
   const handleSubmit = useCallback(() => {
     const text = input.trim()
