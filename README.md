@@ -141,6 +141,19 @@ cs.chat/
 
 We welcome contributions! Open an [issue](https://github.com/crafter-station/cs.chat/issues) or submit a pull request.
 
+## License
+
+Licensed under the [GNU Affero General Public License v3.0 or later](./LICENSE) (AGPL-3.0-or-later).
+
+**What this means in practice**:
+
+- You can read, fork, modify, and self-host the code.
+- If you run a modified version as a network service (SaaS), AGPL requires you to publish your modifications under AGPL too. You can't take this code, improve it in secret, and run a competing hosted product while keeping your changes closed.
+- Personal use, educational use, evaluation, and private internal deployments are all fine.
+- Redistribution must preserve the license and copyright notices.
+
+If you need different terms for a specific commercial arrangement, reach out to [crafterstation.com](https://crafterstation.com).
+
 ---
 
 <p align="center">
