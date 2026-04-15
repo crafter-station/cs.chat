@@ -1,4 +1,5 @@
 import { streamText, UIMessage, convertToModelMessages } from "ai";
+import { isLocalModelId } from "@cs-chat/shared";
 import { ratelimit, getClientIdentifier } from "@/lib/ratelimit";
 import { resolveUser } from "@/lib/user-service";
 import { incrementUsage } from "@/lib/usage";
@@ -20,6 +21,15 @@ export async function POST(req: Request) {
     return Response.json({ error: "Invalid request body" }, { status: 400 });
   }
   const { model, messages, fingerprintId, sendId } = body;
+
+  // Local models run 100% in the browser via @huggingface/transformers.
+  // They should never hit this route — reject if a client somehow does.
+  if (isLocalModelId(model)) {
+    return Response.json(
+      { error: "Local models run in-browser and should not be sent to the server." },
+      { status: 400 },
+    );
+  }
 
   // Daily usage limit
   if (fingerprintId) {

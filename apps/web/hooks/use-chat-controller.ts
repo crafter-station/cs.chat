@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import { useQueryClient } from "@tanstack/react-query";
 import { nanoid } from "nanoid";
 import type { UIMessage } from "ai";
+import { isLocalModelId } from "@cs-chat/shared";
 import { useChatContext } from "@/lib/chat-context";
+import { createLocalAwareTransport } from "@/lib/local-model/transport";
 import {
   useCreateThread,
   useThreads,
@@ -86,7 +88,9 @@ export function useChatController() {
 
   const queryClient = useQueryClient();
   const { data: usage } = useUsage();
-  const canSend = usage?.canSend !== false;
+  const isLocal = isLocalModelId(selectedModel);
+  // Local models run in the browser — usage is unlimited.
+  const canSend = isLocal ? true : usage?.canSend !== false;
 
   const createThread = useCreateThread();
   const generateTitle = useGenerateTitle();
@@ -110,8 +114,11 @@ export function useChatController() {
   // Promise that resolves once the thread row exists in the DB
   const threadReadyRef = useRef<Promise<unknown> | null>(null);
 
+  const transport = useMemo(() => createLocalAwareTransport(), []);
+
   const { messages, status, sendMessage, setMessages } = useChat({
     id: activeChatId ?? undefined,
+    transport,
   });
 
   // Focus the textarea on chat switch and after each response completes
