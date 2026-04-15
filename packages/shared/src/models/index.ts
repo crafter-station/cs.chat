@@ -4,6 +4,10 @@ export interface Model {
   id: string;
   name: string;
   providers: string[];
+  /** When true, inference runs 100% in the browser (WebGPU). Usage is unlimited. */
+  isLocal?: boolean;
+  /** HuggingFace model repo id to load via @huggingface/transformers. Required when isLocal. */
+  localModelId?: string;
 }
 
 export const models: Model[] = [
@@ -112,7 +116,20 @@ export const models: Model[] = [
     name: "Codestral",
     providers: ["mistral"],
   },
+  {
+    chef: "Local",
+    chefSlug: "local",
+    id: "local/bonsai-1.7b",
+    name: "Bonsai 1.7B (WebGPU)",
+    providers: ["browser"],
+    isLocal: true,
+    localModelId: "onnx-community/Bonsai-1.7B-ONNX",
+  },
 ];
+
+export function isLocalModelId(id: string): boolean {
+  return models.find((m) => m.id === id)?.isLocal === true;
+}
 
 export const suggestions = [
   "How does AI work?",
