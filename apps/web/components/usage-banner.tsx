@@ -1,12 +1,17 @@
 "use client";
 
 import { SignInButton } from "@clerk/nextjs";
+import { isLocalModelId } from "@cs-chat/shared";
 import { useUsage } from "@/hooks/use-usage";
+import { useChatContext } from "@/lib/chat-context";
 import Link from "next/link";
 
 export function UsageBanner() {
   const { data } = useUsage();
+  const { selectedModel } = useChatContext();
 
+  // Local models run in-browser — no quota.
+  if (isLocalModelId(selectedModel)) return null;
   if (!data || data.tier === "paid") return null;
 
   const blocked = !data.canSend;

@@ -28,35 +28,50 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import { models, chefs, type Model } from "@/lib/models";
 import { UsageBanner } from "@/components/usage-banner";
+import { LocalModelBanner } from "@/components/local-model-banner";
+import { isWebGpuAvailable } from "@/lib/local-model/client";
 
 interface ModelItemProps {
   model: Model;
   selectedModel: string;
   onSelect: (id: string) => void;
+  disabled?: boolean;
 }
 
-const ModelItem = memo(({ model, selectedModel, onSelect }: ModelItemProps) => {
-  const handleSelect = useCallback(
-    () => onSelect(model.id),
-    [onSelect, model.id]
-  );
-  return (
-    <ModelSelectorItem onSelect={handleSelect} value={model.id}>
-      <ModelSelectorLogo provider={model.chefSlug} />
-      <ModelSelectorName>{model.name}</ModelSelectorName>
-      <ModelSelectorLogoGroup>
-        {model.providers.map((provider) => (
-          <ModelSelectorLogo key={provider} provider={provider} />
-        ))}
-      </ModelSelectorLogoGroup>
-      {selectedModel === model.id ? (
-        <CheckIcon className="ml-auto size-4" />
-      ) : (
-        <div className="ml-auto size-4" />
-      )}
-    </ModelSelectorItem>
-  );
-});
+const ModelItem = memo(
+  ({ model, selectedModel, onSelect, disabled }: ModelItemProps) => {
+    const handleSelect = useCallback(() => {
+      if (disabled) return;
+      onSelect(model.id);
+    }, [onSelect, model.id, disabled]);
+    return (
+      <ModelSelectorItem
+        onSelect={handleSelect}
+        value={model.id}
+        disabled={disabled}
+      >
+        <ModelSelectorLogo provider={model.chefSlug} />
+        <ModelSelectorName>{model.name}</ModelSelectorName>
+        {model.isLocal ? (
+          <span className="ml-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+            {disabled ? "no webgpu" : "local · ∞"}
+          </span>
+        ) : (
+          <ModelSelectorLogoGroup>
+            {model.providers.map((provider) => (
+              <ModelSelectorLogo key={provider} provider={provider} />
+            ))}
+          </ModelSelectorLogoGroup>
+        )}
+        {selectedModel === model.id ? (
+          <CheckIcon className="ml-auto size-4" />
+        ) : (
+          <div className="ml-auto size-4" />
+        )}
+      </ModelSelectorItem>
+    );
+  },
+);
 
 ModelItem.displayName = "ModelItem";
 
@@ -88,7 +103,13 @@ export function ChatInput({
   onModelSelect,
 }: ChatInputProps) {
   const [modelSelectorOpen, setModelSelectorOpen] = useState(false);
+  const [webGpuOk, setWebGpuOk] = useState(true);
   const selectedModelData = models.find((m) => m.id === selectedModel);
+
+  // WebGPU is only present in Chrome/Edge today. Disable local models otherwise.
+  useEffect(() => {
+    setWebGpuOk(isWebGpuAvailable());
+  }, []);
 
   const handleModelSelect = useCallback(
     (id: string) => {
@@ -152,6 +173,7 @@ export function ChatInput({
           </p>
         )}
 
+        <LocalModelBanner />
         <UsageBanner />
 
         <div className="pointer-events-auto">
@@ -209,6 +231,7 @@ export function ChatInput({
                                   model={model}
                                   onSelect={handleModelSelect}
                                   selectedModel={selectedModel}
+                                  disabled={model.isLocal && !webGpuOk}
                                 />
                               ))}
                           </ModelSelectorGroup>
