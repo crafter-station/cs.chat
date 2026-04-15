@@ -67,12 +67,15 @@ export function ModelSelectorMenu({
   const theme = useAIElementsTheme()
   const insets = useSafeAreaInsets()
 
+  // Local models are WebGPU-only — not supported on native.
   const grouped = useMemo(
     () =>
-      chefs.map((chef) => ({
-        chef,
-        items: models.filter((m) => m.chef === chef),
-      })),
+      chefs
+        .map((chef) => ({
+          chef,
+          items: models.filter((m) => m.chef === chef && !m.isLocal),
+        }))
+        .filter((g) => g.items.length > 0),
     [],
   )
 
